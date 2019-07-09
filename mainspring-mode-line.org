@@ -1,0 +1,13 @@
+* mainspring-mode-line
+
+A pretty mode-line for Emacs.
+
+[[file:c:/Users/jonathan/.emacs.d/straight/repos/mainspring-mode-line/mainspring-mode-line.png]]
+
+** Overview
+
+mainspring-mode-line is a mode-line for Emacs. It shows the number of the window, whether the buffer is dirty, the name of the buffer, the project if any, the current major mode, a scrollbar, and the coordinates of the cursor.
+
+** Installation
+
+This uses PragmataPro fonts which are non-free. It also relies on projectiel and winum.
