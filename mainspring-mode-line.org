@@ -10,4 +10,4 @@ mainspring-mode-line is a mode-line for Emacs. It shows the number of the window
 
 ** Installation
 
-This uses PragmataPro fonts which are non-free. It also relies on projectiel and winum.
+This uses PragmataPro fonts which are non-free. It also relies on projectile and winum.
