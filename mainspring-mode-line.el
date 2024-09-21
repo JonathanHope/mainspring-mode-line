@@ -213,6 +213,9 @@
 (defun mainspring-mode-line-selected-window-active ()
   (eq mainspring-mode-line-selected-window (selected-window)))
 
+(defun mainspring-mode-sidebar-active ()
+  (derived-mode-p 'dired-sidebar-mode))
+
 ;; Force winum to behave like the rest of the modeline.
 
 (eval-after-load "winum"
@@ -236,27 +239,51 @@
 
 ;; The start of the mode line.
 (defvar mainspring-mode-line-start
-  '(:eval (propertize mainspring-mode-line-dash 'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-face 'mainspring-mode-line-inactive-face))))
+  '(:eval (propertize
+           mainspring-mode-line-dash
+           'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-face 'mainspring-mode-line-inactive-face))))
 (put 'mainspring-mode-line-start 'risky-local-variable t)
 
 ;; Start of a section.
 (defvar mainspring-mode-line-section-start
-  '(:eval (propertize (concat mainspring-mode-line-bullet " ") 'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-face 'mainspring-mode-line-inactive-face))))
+  '(:eval (propertize
+           (concat mainspring-mode-line-bullet " ")
+           'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-face 'mainspring-mode-line-inactive-face))))
 (put 'mainspring-section-start 'risky-local-variable t)
 
 ;; End of a section.
 (defvar mainspring-mode-line-section-end
-  '(:eval (propertize (concat " " mainspring-mode-line-bullet mainspring-mode-line-dash mainspring-mode-line-dash) 'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-face 'mainspring-mode-line-inactive-face))))
+  '(:eval (propertize
+           (concat " " mainspring-mode-line-bullet mainspring-mode-line-dash mainspring-mode-line-dash)
+           'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-face 'mainspring-mode-line-inactive-face))))
 (put 'mainspring-section-end 'risky-local-variable t)
 
 ;; Start of a active only section.
 (defvar mainspring-mode-line-active-section-start
-  '(:eval (propertize (if (mainspring-mode-line-selected-window-active) (concat mainspring-mode-line-bullet " ") "") 'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-face 'mainspring-mode-line-inactive-face))))
+  '(:eval (propertize
+           (if (and (not (mainspring-mode-sidebar-active)) (mainspring-mode-line-selected-window-active)) (concat mainspring-mode-line-bullet " ") "")
+           'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-face 'mainspring-mode-line-inactive-face))))
 (put 'mainspring-active-section-start 'risky-local-variable t)
 
 ;; End of a active only section.
 (defvar mainspring-mode-line-active-section-end
-  '(:eval (propertize (if (mainspring-mode-line-selected-window-active) (concat " " mainspring-mode-line-bullet mainspring-mode-line-dash mainspring-mode-line-dash) "") 'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-face 'mainspring-mode-line-inactive-face))))
+  '(:eval (propertize
+           (if (and (not (mainspring-mode-sidebar-active)) (mainspring-mode-line-selected-window-active)) (concat " " mainspring-mode-line-bullet mainspring-mode-line-dash mainspring-mode-line-dash) "")
+           'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-face 'mainspring-mode-line-inactive-face))))
+(put 'mainspring-mainspring-active-section-end 'risky-local-variable t)
+
+;; Start of a non sidebar only section.
+(defvar mainspring-mode-line-non-sidebar-section-start
+  '(:eval (propertize
+           (if (not (mainspring-mode-sidebar-active)) (concat mainspring-mode-line-bullet " ") "")
+           'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-face 'mainspring-mode-line-inactive-face))))
+(put 'mainspring-active-section-start 'risky-local-variable t)
+
+;; End of a non sidebar only section.
+(defvar mainspring-mode-line-non-sidebar-section-end
+  '(:eval (propertize
+           (if (not (mainspring-mode-sidebar-active)) (concat " " mainspring-mode-line-bullet mainspring-mode-line-dash mainspring-mode-line-dash) "")
+           'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-face 'mainspring-mode-line-inactive-face))))
 (put 'mainspring-mainspring-active-section-end 'risky-local-variable t)
 
 ;; This char is used to adjust the height of the mode line to have perfectly even padding.
@@ -272,17 +299,24 @@
 ;; Whether the file has been edited since the last save.
 (defvar mainspring-mode-line-file-status
   '(:eval
-    (propertize (if (buffer-modified-p) (concat mainspring-mode-line-dirty-file " ") "") 'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-file-status-face 'mainspring-mode-line-inactive-face))))
+    (propertize (if (and (buffer-modified-p) (not (mainspring-mode-sidebar-active)))
+                    (concat mainspring-mode-line-dirty-file " ") "")
+                'face
+                (if (mainspring-mode-line-selected-window-active)
+                    'mainspring-mode-line-file-status-face
+                  'mainspring-mode-line-inactive-face))))
 (put 'mainspring-mode-line-file-status 'risky-local-variable t)
 
 ;; The name of the file being edited.
 (defvar mainspring-mode-line-filename
-  '(:eval (propertize "%b" 'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-buffer-name-face 'mainspring-mode-line-inactive-face))))
+  '(:eval (propertize (if (mainspring-mode-sidebar-active) nil "%b")
+                      'face
+                      (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-buffer-name-face 'mainspring-mode-line-inactive-face))))
 (put 'mainspring-mode-line-filename 'risky-local-variable t)
 
 ;; What project we are in.
 (defvar mainspring-mode-line-projectile
-  '(:eval  (if (mainspring-mode-line-selected-window-active)
+  '(:eval  (if (and (not (mainspring-mode-sidebar-active)) (mainspring-mode-line-selected-window-active))
                (if (projectile-project-p)
                    (propertize (projectile-project-name) 'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-projectile-face 'mainspring-mode-line-inactive-face))
                  (propertize mainspring-mode-line-missing-project 'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-projectile-face 'mainspring-mode-line-inactive-face)))
@@ -291,7 +325,7 @@
 
 ;; The current major mode.
 (defvar mainspring-mode-line-major-mode
-  '(:eval (if (mainspring-mode-line-selected-window-active) (propertize "%m" 'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-mode-face 'mainspring-mode-line-inactive-face)) "")))
+  '(:eval (if (and (not (mainspring-mode-sidebar-active)) (mainspring-mode-line-selected-window-active)) (propertize "%m" 'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-mode-face 'mainspring-mode-line-inactive-face)) "")))
 (put 'mainspring-mode-line-major-mode 'risky-local-variable t)
 
 (defun mainspring-mode-line-what-line-no-print ()
@@ -331,13 +365,13 @@
 
 ;; A horizontal scroll line.
 (defvar mainspring-mode-line-scroll-bar
-  '(:eval (if (mainspring-mode-line-selected-window-active) (mainspring-mode-line-get-scroll-bar) "")))
+  '(:eval (if (and (not (mainspring-mode-sidebar-active)) (mainspring-mode-line-selected-window-active)) (mainspring-mode-line-get-scroll-bar) "")))
 (put 'mainspring-mode-line-scroll-bar 'risky-local-variable t)
 
 ;; The current row and column being edited.
 (defvar mainspring-mode-line-row-column
   '(:eval
-    (if (mainspring-mode-line-selected-window-active)
+    (if (and (not (mainspring-mode-sidebar-active)) (mainspring-mode-line-selected-window-active))
         (concat (propertize "%01l" 'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-row-column-face 'mainspring-mode-line-inactive-face))
                 (propertize mainspring-mode-line-row-column-divider 'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-row-column-face 'mainspring-mode-line-inactive-face))
                 (propertize "%01c" 'face (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-row-column-face 'mainspring-mode-line-inactive-face)))
@@ -361,10 +395,10 @@
                mainspring-mode-line-adjust-height
                mainspring-mode-line-section-end
 
-               mainspring-mode-line-section-start
+               mainspring-mode-line-non-sidebar-section-start
                mainspring-mode-line-file-status
                mainspring-mode-line-filename
-               mainspring-mode-line-section-end
+               mainspring-mode-line-non-sidebar-section-end
 
                mainspring-mode-line-active-section-start
                mainspring-mode-line-projectile
