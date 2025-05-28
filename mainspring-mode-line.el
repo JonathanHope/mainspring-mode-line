@@ -309,7 +309,7 @@
 
 ;; The name of the file being edited.
 (defvar mainspring-mode-line-filename
-  '(:eval (propertize (if (mainspring-mode-sidebar-active) nil "%b")
+  '(:eval (propertize (if (mainspring-mode-sidebar-active) "" "%b")
                       'face
                       (if (mainspring-mode-line-selected-window-active) 'mainspring-mode-line-buffer-name-face 'mainspring-mode-line-inactive-face))))
 (put 'mainspring-mode-line-filename 'risky-local-variable t)
